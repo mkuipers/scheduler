@@ -18,44 +18,76 @@
 <% end %>
 
 <% if @is_creator %>
+  <% slots_by_date = @poll.time_slots.ordered_by_date.group_by { |s| s.date.iso8601 }.transform_values { |arr| arr.map(&:display_label) } %>
+
   <div class="share-card">
     <p class="share-card__label">Share link</p>
     <p class="share-url"><%= poll_url(@poll.token) %></p>
   </div>
 
-  <section class="section card card--pad">
+  <%= tag.section class: "section card card--pad calendar-card", data: {
+        controller: "slot-calendar",
+        slot_calendar_slots_value: slots_by_date,
+        slot_calendar_anchor_value: Time.zone.today.iso8601
+      } do %>
     <h2 class="section-title">Add time slots</h2>
-    <%= form_with url: poll_time_slots_url(@poll.token), html: { class: "form" } do |f| %>
-      <div class="form__group">
-        <label for="date" class="form__label">Date</label>
-        <input type="date" name="time_slot[date]" id="date" required>
-      </div>
-      <div class="form__group">
-        <label for="time_window" class="form__label">Time window</label>
-        <input type="text" name="time_slot[time_window]" id="time_window" placeholder="e.g. 2pm–4pm"
-               autocomplete="off">
-      </div>
-      <input type="hidden" name="time_slot[starts_at_minute]" id="preset_start" value="">
-      <input type="hidden" name="time_slot[ends_at_minute]" id="preset_end" value="">
-      <% if @presets.any? %>
-        <p class="preset-hint">Or pick a preset window:</p>
-        <div class="preset-row">
-          <% @presets.each do |start_min, end_min| %>
-            <% label = TimeSlot.new(starts_at_minute: start_min, ends_at_minute: end_min).display_label %>
-            <button type="button" class="btn btn--ghost btn--sm"
-                    onclick="document.getElementById('preset_start').value='<%= start_min %>';
-                             document.getElementById('preset_end').value='<%= end_min %>';
-                             document.getElementById('time_window').value='';">
-              <%= label %>
-            </button>
-          <% end %>
+    <p class="calendar-hint">Choose a day on the calendar. You can type a time range or tap a preset to add it immediately for that date.</p>
+
+    <div class="calendar__toolbar">
+      <button type="button" class="btn btn--secondary calendar__nav-btn" data-action="slot-calendar#prevMonth" aria-label="Previous month">
+        <span aria-hidden="true">‹</span>
+      </button>
+      <h3 class="calendar__month-label" data-slot-calendar-target="monthLabel"></h3>
+      <button type="button" class="btn btn--secondary calendar__nav-btn" data-action="slot-calendar#nextMonth" aria-label="Next month">
+        <span aria-hidden="true">›</span>
+      </button>
+    </div>
+
+    <div class="calendar__grid" data-slot-calendar-target="grid" role="grid" aria-label="Month view"></div>
+
+    <dialog class="slot-modal" data-slot-calendar-target="dialog" data-action="click->slot-calendar#backdropClose">
+      <div class="slot-modal__panel" data-action="click->slot-calendar#stopPropagation">
+        <div class="slot-modal__header">
+          <h3 class="slot-modal__title" data-slot-calendar-target="modalTitle"></h3>
+          <button type="button" class="slot-modal__close btn btn--ghost btn--sm" data-action="slot-calendar#closeModal" aria-label="Close">×</button>
         </div>
-      <% end %>
-      <div class="form__actions">
-        <%= f.submit "Add time slot", class: "btn btn--primary" %>
+
+        <%= form_with url: poll_time_slots_url(@poll.token), scope: :time_slot, method: :post, html: { class: "form slot-modal__form", id: "slot-form-custom" } do |f| %>
+          <%= f.hidden_field :date, value: "", id: "slot_form_custom_date", data: { slot_calendar_target: "dateField" } %>
+          <%= f.hidden_field :starts_at_minute, value: "", id: "slot_form_custom_start" %>
+          <%= f.hidden_field :ends_at_minute, value: "", id: "slot_form_custom_end" %>
+          <div class="form__group">
+            <%= f.label :time_window, "Time window", class: "form__label" %>
+            <%= f.text_field :time_window,
+                  placeholder: "e.g. 2pm–4pm",
+                  autocomplete: "off",
+                  id: "slot_form_custom_time_window",
+                  data: { slot_calendar_target: "timeWindow" } %>
+          </div>
+          <div class="form__actions">
+            <%= f.submit "Add time slot", class: "btn btn--primary" %>
+          </div>
+        <% end %>
+
+        <% if @presets.any? %>
+          <div class="slot-modal__presets">
+            <p class="slot-modal__presets-label">Quick add (same times you used before)</p>
+            <div class="preset-row preset-row--modal">
+              <% @presets.each_with_index do |(start_min, end_min), idx| %>
+                <% label = TimeSlot.new(starts_at_minute: start_min, ends_at_minute: end_min).display_label %>
+                <%= form_with url: poll_time_slots_url(@poll.token), scope: :time_slot, method: :post, html: { class: "preset-quick-form", id: "slot-form-preset-#{idx}" } do |f| %>
+                  <%= f.hidden_field :date, value: "", id: "slot_form_preset_#{idx}_date", data: { slot_calendar_target: "dateField" } %>
+                  <%= f.hidden_field :starts_at_minute, value: start_min, id: "slot_form_preset_#{idx}_start" %>
+                  <%= f.hidden_field :ends_at_minute, value: end_min, id: "slot_form_preset_#{idx}_end" %>
+                  <%= f.submit label, class: "btn btn--ghost btn--sm" %>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
       </div>
-    <% end %>
-  </section>
+    </dialog>
+  <% end %>
 
   <% if @poll.time_slots.any? %>
     <section class="section">
