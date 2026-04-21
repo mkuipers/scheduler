@@ -1,19 +1,33 @@
-<h1>Schedule a Meeting</h1>
+<% content_for :title, "Schedule a meeting" %>
 
-<%= form_with model: @poll, url: polls_path do |f| %>
-  <% @poll.errors.full_messages.each do |msg| %>
-    <p><%= msg %></p>
+<header class="page-header">
+  <p class="eyebrow">New poll</p>
+  <h1 class="page-title">Schedule a meeting</h1>
+  <p class="lede">Add your name and an optional title. Next you’ll pick times and get a link to share.</p>
+</header>
+
+<div class="card card--pad">
+  <%= form_with model: @poll, url: polls_path, html: { class: "form" } do |f| %>
+    <% if @poll.errors.any? %>
+      <div class="form-errors" role="alert">
+        <% @poll.errors.full_messages.each do |msg| %>
+          <p><%= msg %></p>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="form__group">
+      <%= f.label :creator_name, "Your name", class: "form__label" %>
+      <%= f.text_field :creator_name, autocomplete: "name", placeholder: "Alex Kim" %>
+    </div>
+
+    <div class="form__group">
+      <%= f.label :title, "Meeting title (optional)", class: "form__label" %>
+      <%= f.text_field :title, placeholder: "Weekly planning" %>
+    </div>
+
+    <div class="form__actions">
+      <%= f.submit "Get started", class: "btn btn--primary" %>
+    </div>
   <% end %>
-
-  <div>
-    <%= f.label :creator_name, "Your name" %>
-    <%= f.text_field :creator_name %>
-  </div>
-
-  <div>
-    <%= f.label :title, "Meeting title (optional)" %>
-    <%= f.text_field :title %>
-  </div>
-
-  <%= f.submit "Get started" %>
-<% end %>
+</div>
