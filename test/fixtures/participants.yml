@@ -1,0 +1,9 @@
+one:
+  poll: one
+  name: Charlie
+  cookie_id: cookie_voter_one
+
+two:
+  poll: one
+  name: Diana
+  cookie_id: cookie_voter_two

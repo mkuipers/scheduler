@@ -1,0 +1,98 @@
+<% content_for :title, @poll.title.presence || "Meeting Poll" %>
+
+<h1><%= @poll.title.presence || "Meeting Poll" %></h1>
+<p>Created by <strong><%= @poll.creator_name %></strong></p>
+
+<% if flash[:notice] %>
+  <p style="color:green"><%= flash[:notice] %></p>
+<% end %>
+<% if flash[:alert] %>
+  <p style="color:red"><%= flash[:alert] %></p>
+<% end %>
+
+<% if @is_creator %>
+  <p><strong>Share link:</strong> <%= poll_url(@poll.token) %></p>
+
+  <h2>Add time slots</h2>
+  <%= form_with url: poll_time_slots_url(@poll.token) do |f| %>
+    <div>
+      <label for="date">Date</label>
+      <input type="date" name="time_slot[date]" id="date" required>
+    </div>
+    <div>
+      <label for="time_window">Time window (e.g. 2pm-4pm)</label>
+      <input type="text" name="time_slot[time_window]" id="time_window" placeholder="2pm-4pm"
+             autocomplete="off">
+    </div>
+    <input type="hidden" name="time_slot[starts_at_minute]" id="preset_start" value="">
+    <input type="hidden" name="time_slot[ends_at_minute]"   id="preset_end"   value="">
+    <% if @presets.any? %>
+      <p>Or use a preset:</p>
+      <% @presets.each do |start_min, end_min| %>
+        <% label = TimeSlot.new(starts_at_minute: start_min, ends_at_minute: end_min).display_label %>
+        <button type="button"
+                onclick="document.getElementById('preset_start').value='<%= start_min %>';
+                         document.getElementById('preset_end').value='<%= end_min %>';
+                         document.getElementById('time_window').value='';">
+          <%= label %>
+        </button>
+      <% end %>
+    <% end %>
+    <%= f.submit "Add time slot" %>
+  <% end %>
+
+  <% if @poll.time_slots.any? %>
+    <h2>Current slots</h2>
+    <ul>
+      <% @poll.time_slots.ordered_by_date.each do |slot| %>
+        <li>
+          <%= slot.date.strftime("%B %-d, %Y") %> &mdash; <%= slot.display_label %>
+          &nbsp;
+          <%= button_to "Remove", poll_time_slot_url(@poll.token, slot), method: :delete %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+<% else %>
+  <% if @participant.nil? %>
+    <h2>When are you available?</h2>
+    <%= form_with model: Participant.new, url: poll_participants_url(@poll.token) do |f| %>
+      <div>
+        <label for="participant_name">Your name</label>
+        <%= f.text_field :name, id: "participant_name", required: true %>
+      </div>
+      <%= f.submit "Join" %>
+    <% end %>
+  <% else %>
+    <h2>Mark your availability, <%= @participant.name %></h2>
+    <%= form_with url: poll_bulk_responses_url(@poll.token), method: :post do |f| %>
+      <% responses_by_slot = @participant.responses.index_by(&:time_slot_id) %>
+      <% @poll.time_slots.ordered_by_date.each do |slot| %>
+        <% current_status = responses_by_slot[slot.id]&.status %>
+        <fieldset>
+          <legend><%= slot.date.strftime("%B %-d, %Y") %> &mdash; <%= slot.display_label %></legend>
+          <label>
+            <input type="radio" name="responses[<%= slot.id %>]"
+                   id="yes_<%= slot.id %>" value="yes"
+                   <%= "checked" if current_status == "yes" %>>
+            Yes
+          </label>
+          <label>
+            <input type="radio" name="responses[<%= slot.id %>]"
+                   id="maybe_<%= slot.id %>" value="maybe"
+                   <%= "checked" if current_status == "maybe" %>>
+            Maybe
+          </label>
+          <label>
+            <input type="radio" name="responses[<%= slot.id %>]"
+                   id="no_<%= slot.id %>" value="no"
+                   <%= "checked" if current_status == "no" %>>
+            No
+          </label>
+        </fieldset>
+      <% end %>
+      <%= f.submit "Save my availability" %>
+    <% end %>
+  <% end %>
+<% end %>

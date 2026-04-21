@@ -1,0 +1,9 @@
+one:
+  participant: one
+  time_slot: one
+  status: 2
+
+two:
+  participant: one
+  time_slot: two
+  status: 1

@@ -1,0 +1,13 @@
+one:
+  token: abc123xyz1
+  title: Team lunch
+  creator_cookie_id: cookie_creator_one
+  creator_name: Alice
+  expires_at: <%= 180.days.from_now %>
+
+two:
+  token: def456xyz2
+  title: Friday drinks
+  creator_cookie_id: cookie_creator_two
+  creator_name: Bob
+  expires_at: <%= 180.days.from_now %>

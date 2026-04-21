@@ -1,0 +1,19 @@
+<h1>Schedule a Meeting</h1>
+
+<%= form_with model: @poll, url: polls_path do |f| %>
+  <% @poll.errors.full_messages.each do |msg| %>
+    <p><%= msg %></p>
+  <% end %>
+
+  <div>
+    <%= f.label :creator_name, "Your name" %>
+    <%= f.text_field :creator_name %>
+  </div>
+
+  <div>
+    <%= f.label :title, "Meeting title (optional)" %>
+    <%= f.text_field :title %>
+  </div>
+
+  <%= f.submit "Get started" %>
+<% end %>
