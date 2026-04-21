@@ -101,14 +101,21 @@
   <% if @poll.time_slots.any? %>
     <section class="section">
       <h2 class="section-title">Scheduled options</h2>
-      <ul class="slot-list">
-        <% @poll.time_slots.ordered_by_date.each do |slot| %>
-          <li class="slot-item">
-            <span class="slot-item__text"><%= slot.date.strftime("%B %-d, %Y") %> · <%= slot.display_label %></span>
-            <%= button_to "Remove", poll_time_slot_url(@poll.token, slot), method: :delete, class: "btn btn--danger btn--sm" %>
-          </li>
+      <div class="slot-list">
+        <% @poll.time_slots.ordered_by_date.to_a.group_by(&:date).each do |date, slots| %>
+          <div class="slot-day-group">
+            <h3 class="slot-day-group__title"><%= date.strftime("%B %-d, %Y") %></h3>
+            <ul class="slot-day-group__slots">
+              <% slots.each do |slot| %>
+                <li class="slot-item">
+                  <span class="slot-item__text"><%= slot.display_label %></span>
+                  <%= button_to "Remove", poll_time_slot_url(@poll.token, slot), method: :delete, class: "btn btn--danger btn--sm" %>
+                </li>
+              <% end %>
+            </ul>
+          </div>
         <% end %>
-      </ul>
+      </div>
     </section>
   <% end %>
 
