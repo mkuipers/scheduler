@@ -17,6 +17,33 @@ class TimeWindowParserTest < ActiveSupport::TestCase
     assert_equal 16 * 60 + 15, result.end_minute
   end
 
+  test "parses compact meridiem without colon e.g. 330pm" do
+    result = TimeWindowParser.parse("330pm-5pm")
+    assert result.ok?
+    assert_equal 15 * 60 + 30, result.start_minute
+    assert_equal 17 * 60, result.end_minute
+  end
+
+  test "parses compact meridiem with space before am/pm" do
+    result = TimeWindowParser.parse("930 am - 10 am")
+    assert result.ok?
+    assert_equal 9 * 60 + 30, result.start_minute
+    assert_equal 10 * 60, result.end_minute
+  end
+
+  test "parses four-digit compact e.g. 1030am" do
+    result = TimeWindowParser.parse("1030am-12pm")
+    assert result.ok?
+    assert_equal 10 * 60 + 30, result.start_minute
+    assert_equal 12 * 60, result.end_minute
+  end
+
+  test "does not mangle already-colon times" do
+    result = TimeWindowParser.parse("2:30pm-4pm")
+    assert result.ok?
+    assert_equal 14 * 60 + 30, result.start_minute
+  end
+
   test "parses 24-hour format" do
     result = TimeWindowParser.parse("14:00-16:00")
     assert result.ok?

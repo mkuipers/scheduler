@@ -5,6 +5,9 @@ class TimeWindowParser
   SEP_PAT   = /\s*(?:-|–|—|\bto\b)\s*/i
   WINDOW_RE = /\A\s*#{TIME_PAT}#{SEP_PAT}#{TIME_PAT}\s*\z/i
 
+  # "330pm" / "1030am" style (no colon) — not preceded by another digit or ":" (avoids touching "14:30pm").
+  COMPACT_MERIDIEM = /(?<![:\d])(\d{3,4})\s*(am|pm)\b/i
+
   def self.parse(input)
     new(input).parse
   end
@@ -14,7 +17,8 @@ class TimeWindowParser
   end
 
   def parse
-    m = WINDOW_RE.match(@input)
+    normalized = normalize_compact_meridiem(@input)
+    m = WINDOW_RE.match(normalized)
     return err("Could not parse time window — try something like \"2pm-4pm\" or \"14:00-16:00\"") unless m
 
     start_h, start_m, start_suffix = m[1].to_i, (m[2] || "0").to_i, m[3]
@@ -35,6 +39,32 @@ class TimeWindowParser
   end
 
   private
+
+  def normalize_compact_meridiem(str)
+    str.gsub(COMPACT_MERIDIEM) do
+      digits = Regexp.last_match(1)
+      suf = Regexp.last_match(2)
+      body = expand_digits_meridiem(digits)
+      body ? "#{body}#{suf.downcase}" : Regexp.last_match(0)
+    end
+  end
+
+  # Returns "H:MM" (24h-style clock face only; am/pm is appended by caller) or nil if not a valid compact token.
+  def expand_digits_meridiem(digits)
+    case digits.length
+    when 3
+      h = digits[0].to_i
+      m = digits[1..2].to_i
+      return nil if h < 1 || h > 9 || m > 59
+    when 4
+      h = digits[0..1].to_i
+      m = digits[2..3].to_i
+      return nil if h < 1 || h > 12 || m > 59
+    else
+      return nil
+    end
+    "#{h}:#{format('%02d', m)}"
+  end
 
   def normalize_suffix(s)
     return nil if s.nil? || s.empty?
