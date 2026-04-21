@@ -1,4 +1,6 @@
 class PollsController < ApplicationController
+  include PollShowContext
+
   before_action :load_poll, only: [:show, :update]
   before_action :require_creator, only: [:update]
 
@@ -18,9 +20,7 @@ class PollsController < ApplicationController
   end
 
   def show
-    @presets = PollPresets.new(@poll).call
-    @is_creator = @poll.creator?(current_cookie_id)
-    @participant = @poll.participants.find_by(cookie_id: current_cookie_id)
+    assign_poll_show_ivars
   end
 
   def update

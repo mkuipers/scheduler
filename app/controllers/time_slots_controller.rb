@@ -1,4 +1,6 @@
 class TimeSlotsController < ApplicationController
+  include PollShowContext
+
   before_action :load_poll
   before_action :require_creator
 
@@ -7,6 +9,7 @@ class TimeSlotsController < ApplicationController
       result = TimeWindowParser.parse(params[:time_slot][:time_window])
       unless result.ok?
         flash.now[:alert] = result.error
+        assign_poll_show_ivars
         render "polls/show", status: :unprocessable_entity and return
       end
       starts_at_minute = result.start_minute
@@ -26,6 +29,7 @@ class TimeSlotsController < ApplicationController
       redirect_to poll_url(@poll.token)
     else
       flash.now[:alert] = @time_slot.errors.full_messages.to_sentence
+      assign_poll_show_ivars
       render "polls/show", status: :unprocessable_entity
     end
   end

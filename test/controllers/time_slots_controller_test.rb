@@ -42,6 +42,19 @@ class TimeSlotsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
+  test "POST duplicate window on same date returns 422" do
+    post poll_time_slots_url(@poll.token),
+         params: { time_slot: { date: "2026-06-01", time_window: "2pm-4pm" } }
+    assert_response :redirect
+
+    assert_no_difference "TimeSlot.count" do
+      post poll_time_slots_url(@poll.token),
+           params: { time_slot: { date: "2026-06-01", time_window: "2pm-4pm" } }
+    end
+    assert_response :unprocessable_entity
+    assert_match(/already an option/i, response.body)
+  end
+
   test "DELETE removes time slot as creator" do
     slot = TimeSlot.create!(poll: @poll, date: "2026-06-01", starts_at_minute: 840, ends_at_minute: 960)
     assert_difference "TimeSlot.count", -1 do

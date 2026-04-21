@@ -612,6 +612,22 @@ h2,
   margin: 0;
 }
 
+.preset-wrap {
+  display: inline-block;
+}
+
+.preset-wrap--disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.preset-wrap--disabled .btn {
+  cursor: not-allowed;
+  background: #e8eaef;
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+}
+
 .preset-quick-form {
   display: inline;
 }

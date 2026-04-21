@@ -2,9 +2,10 @@ import { Controller } from "@hotwired/stimulus"
 
 // Month grid + modal for adding poll time slots (creator flow).
 export default class extends Controller {
-  static targets = ["grid", "monthLabel", "dialog", "modalTitle", "dateField", "timeWindow"]
+  static targets = ["grid", "monthLabel", "dialog", "modalTitle", "dateField", "timeWindow", "presetWrap"]
   static values = {
     slots: Object,
+    slotMinutes: Object,
     anchor: { type: String, default: "" }
   }
 
@@ -28,6 +29,16 @@ export default class extends Controller {
 
   slotsMap() {
     return this.hasSlotsValue ? this.slotsValue : {}
+  }
+
+  minutesMap() {
+    return this.hasSlotMinutesValue ? this.slotMinutesValue : {}
+  }
+
+  rangesOnDate(iso) {
+    const raw = this.minutesMap()[iso]
+    if (!raw || !Array.isArray(raw)) return []
+    return raw.map((pair) => [Number(pair[0]), Number(pair[1])])
   }
 
   isoFromYmd(y, m0, day) {
@@ -60,8 +71,24 @@ export default class extends Controller {
     })
     this.modalTitleTarget.textContent = this.formatHeading(iso)
     this.timeWindowTarget.value = ""
+    this.updatePresetAvailability(iso)
     this.dialogTarget.showModal()
     this.timeWindowTarget.focus()
+  }
+
+  updatePresetAvailability(iso) {
+    if (!this.hasPresetWrapTarget) return
+
+    const ranges = this.rangesOnDate(iso)
+    this.presetWrapTargets.forEach((wrap) => {
+      const s = Number.parseInt(wrap.dataset.startMin, 10)
+      const e = Number.parseInt(wrap.dataset.endMin, 10)
+      const taken = ranges.some(([a, b]) => a === s && b === e)
+      const btn = wrap.querySelector('input[type="submit"]')
+      if (btn) btn.disabled = taken
+      wrap.classList.toggle("preset-wrap--disabled", taken)
+      wrap.setAttribute("aria-disabled", taken ? "true" : "false")
+    })
   }
 
   backdropClose(event) {

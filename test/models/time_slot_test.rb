@@ -41,6 +41,7 @@ class TimeSlotTest < ActiveSupport::TestCase
     TimeSlot.create!(poll: @poll, date: "2026-06-01", starts_at_minute: 840, ends_at_minute: 960)
     dup = TimeSlot.new(poll: @poll, date: "2026-06-01", starts_at_minute: 840, ends_at_minute: 960)
     assert_not dup.valid?
+    assert_includes dup.errors[:base], "That exact time is already an option on this date."
   end
 
   test "allows same window on different dates" do

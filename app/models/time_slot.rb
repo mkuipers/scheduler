@@ -6,7 +6,7 @@ class TimeSlot < ApplicationRecord
   validates :starts_at_minute, presence: true, numericality: { in: 0..1440 }
   validates :ends_at_minute, presence: true, numericality: { in: 0..1440 }
   validate :end_must_be_after_start
-  validates :date, uniqueness: { scope: [:poll_id, :starts_at_minute, :ends_at_minute] }
+  validate :unique_time_window_per_day
 
   scope :ordered_by_date, -> { order(:date, :starts_at_minute) }
 
@@ -19,6 +19,16 @@ class TimeSlot < ApplicationRecord
   def end_must_be_after_start
     return unless starts_at_minute.present? && ends_at_minute.present?
     errors.add(:ends_at_minute, "must be after start time") if ends_at_minute <= starts_at_minute
+  end
+
+  def unique_time_window_per_day
+    return unless poll && date.present? && starts_at_minute.present? && ends_at_minute.present?
+
+    conflict = poll.time_slots.where(date: date, starts_at_minute: starts_at_minute, ends_at_minute: ends_at_minute)
+    conflict = conflict.where.not(id: id) if persisted?
+    return unless conflict.exists?
+
+    errors.add(:base, "That exact time is already an option on this date.")
   end
 
   def format_minute(total_minutes)

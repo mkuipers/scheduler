@@ -1,4 +1,6 @@
 class ParticipantsController < ApplicationController
+  include PollShowContext
+
   before_action :load_poll
 
   def create
@@ -8,6 +10,7 @@ class ParticipantsController < ApplicationController
     if @participant.save
       redirect_to poll_url(@poll.token)
     else
+      assign_poll_show_ivars
       render "polls/show", status: :unprocessable_entity
     end
   end
@@ -17,6 +20,7 @@ class ParticipantsController < ApplicationController
     if @participant.cookie_id == current_cookie_id && @participant.update(name: params.dig(:participant, :name))
       redirect_to poll_url(@poll.token)
     else
+      assign_poll_show_ivars
       render "polls/show", status: :unprocessable_entity
     end
   end

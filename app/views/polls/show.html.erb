@@ -19,6 +19,7 @@
 
 <% if @is_creator %>
   <% slots_by_date = @poll.time_slots.ordered_by_date.group_by { |s| s.date.iso8601 }.transform_values { |arr| arr.map(&:display_label) } %>
+  <% slot_minutes_by_date = @poll.time_slots.ordered_by_date.group_by { |s| s.date.iso8601 }.transform_values { |arr| arr.map { |s| [s.starts_at_minute, s.ends_at_minute] } } %>
 
   <div class="share-card">
     <p class="share-card__label">Share link</p>
@@ -28,6 +29,7 @@
   <%= tag.section class: "section card card--pad calendar-card", data: {
         controller: "slot-calendar",
         slot_calendar_slots_value: slots_by_date,
+        slot_calendar_slot_minutes_value: slot_minutes_by_date,
         slot_calendar_anchor_value: Time.zone.today.iso8601
       } do %>
     <h2 class="section-title">Add time slots</h2>
@@ -75,12 +77,17 @@
             <div class="preset-row preset-row--modal">
               <% @presets.each_with_index do |(start_min, end_min), idx| %>
                 <% label = TimeSlot.new(starts_at_minute: start_min, ends_at_minute: end_min).display_label %>
-                <%= form_with url: poll_time_slots_url(@poll.token), scope: :time_slot, method: :post, html: { class: "preset-quick-form", id: "slot-form-preset-#{idx}" } do |f| %>
-                  <%= f.hidden_field :date, value: "", id: "slot_form_preset_#{idx}_date", data: { slot_calendar_target: "dateField" } %>
-                  <%= f.hidden_field :starts_at_minute, value: start_min, id: "slot_form_preset_#{idx}_start" %>
-                  <%= f.hidden_field :ends_at_minute, value: end_min, id: "slot_form_preset_#{idx}_end" %>
-                  <%= f.submit label, class: "btn btn--ghost btn--sm" %>
-                <% end %>
+                <span class="preset-wrap"
+                      data-slot-calendar-target="presetWrap"
+                      data-start-min="<%= start_min %>"
+                      data-end-min="<%= end_min %>">
+                  <%= form_with url: poll_time_slots_url(@poll.token), scope: :time_slot, method: :post, html: { class: "preset-quick-form", id: "slot-form-preset-#{idx}" } do |f| %>
+                    <%= f.hidden_field :date, value: "", id: "slot_form_preset_#{idx}_date", data: { slot_calendar_target: "dateField" } %>
+                    <%= f.hidden_field :starts_at_minute, value: start_min, id: "slot_form_preset_#{idx}_start" %>
+                    <%= f.hidden_field :ends_at_minute, value: end_min, id: "slot_form_preset_#{idx}_end" %>
+                    <%= f.submit label, class: "btn btn--ghost btn--sm" %>
+                  <% end %>
+                </span>
               <% end %>
             </div>
           </div>
