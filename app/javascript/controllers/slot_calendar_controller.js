@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 
 // Month grid + modal for adding poll time slots (creator flow).
 export default class extends Controller {
-  static targets = ["grid", "monthLabel", "dialog", "modalTitle", "dateField", "timeWindow", "presetWrap"]
+  static targets = ["grid", "monthLabel", "dialog", "modalTitle", "existingSlots", "dateField", "timeWindow", "presetWrap"]
   static values = {
     slots: Object,
     slotMinutes: Object,
@@ -70,10 +70,27 @@ export default class extends Controller {
       el.value = iso
     })
     this.modalTitleTarget.textContent = this.formatHeading(iso)
+    this.populateExistingSlots(iso)
     this.timeWindowTarget.value = ""
     this.updatePresetAvailability(iso)
     this.dialogTarget.showModal()
     this.timeWindowTarget.focus()
+  }
+
+  populateExistingSlots(iso) {
+    if (!this.hasExistingSlotsTarget) return
+
+    const labels = this.slotsMap()[iso] || []
+    if (labels.length === 0) {
+      this.existingSlotsTarget.hidden = true
+      this.existingSlotsTarget.innerHTML = ""
+      return
+    }
+
+    this.existingSlotsTarget.hidden = false
+    const items = labels.map((l) => `<li>${this.escapeHtml(l)}</li>`).join("")
+    this.existingSlotsTarget.innerHTML =
+      `<p class="slot-modal__existing-label">Already on this day</p><ul class="slot-modal__existing-list">${items}</ul>`
   }
 
   updatePresetAvailability(iso) {
@@ -108,15 +125,57 @@ export default class extends Controller {
     return d.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" })
   }
 
-  formatAriaDay(iso, hasSlots) {
+  formatAriaDay(iso, slotLabels) {
     const h = this.formatHeading(iso)
-    return hasSlots ? `${h}, has proposed times` : `${h}, add a time`
+    if (!slotLabels.length) return `${h}, add a time`
+    return `${h}. Times: ${slotLabels.join(", ")}`
   }
 
   escapeHtml(str) {
     const el = document.createElement("div")
     el.textContent = str
     return el.innerHTML
+  }
+
+  escapeAttr(str) {
+    return String(str)
+      .split(/\r\n|\r|\n/)
+      .map((line) =>
+        line
+          .replace(/&/g, "&amp;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;")
+          .replace(/</g, "&lt;")
+      )
+      .join("&#10;")
+  }
+
+  buildSlotPreviewHtml(slotLabels) {
+    if (!slotLabels.length) return ""
+
+    // Native `title` is unreliable on nodes inside `<button>` (often suppressed in Chrome). Use `data-tooltip` + CSS.
+    const line = (text, extraClass = "", tooltipPlain = null) => {
+      const tip =
+        tooltipPlain != null ? ` data-tooltip="${this.escapeAttr(tooltipPlain)}"` : ""
+      return `<span class="calendar__slot-preview-line ${extraClass}"${tip}>${this.escapeHtml(text)}</span>`
+    }
+
+    if (slotLabels.length === 1) {
+      return `<span class="calendar__slot-preview-block">${line(slotLabels[0])}</span>`
+    }
+
+    if (slotLabels.length === 2) {
+      return `<span class="calendar__slot-preview-block">${line(slotLabels[0])}${line(slotLabels[1])}</span>`
+    }
+
+    const others = slotLabels.length - 1
+    const allTimesTip = slotLabels.join("\n")
+    return (
+      `<span class="calendar__slot-preview-block">` +
+      `${line(slotLabels[0])}` +
+      `${line(`and ${others} other${others === 1 ? "" : "s"}`, "calendar__slot-preview-line--meta", allTimesTip)}` +
+      `</span>`
+    )
   }
 
   renderCalendar() {
@@ -155,15 +214,11 @@ export default class extends Controller {
       if (isToday) cls += " calendar__day--today"
       if (hasSlots) cls += " calendar__day--has-slots"
 
-      const preview =
-        hasSlots ?
-          `<span class="calendar__slot-preview">${this.escapeHtml(slotLabels[0])}${slotLabels.length > 1 ? ` +${slotLabels.length - 1}` : ""}</span>` :
-          ""
-
+      const preview = hasSlots ? this.buildSlotPreviewHtml(slotLabels) : ""
       const dot = hasSlots ? '<span class="calendar__slot-dot" aria-hidden="true"></span>' : ""
 
       html +=
-        `<button type="button" class="${cls}" data-action="click->slot-calendar#selectDay" data-iso="${iso}" aria-label="${this.escapeHtml(this.formatAriaDay(iso, hasSlots))}">` +
+        `<button type="button" class="${cls}" data-action="click->slot-calendar#selectDay" data-iso="${iso}" aria-label="${this.escapeHtml(this.formatAriaDay(iso, slotLabels))}">` +
         `<span class="calendar__day-num">${day}</span>${dot}${preview}</button>`
     }
 

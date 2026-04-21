@@ -54,6 +54,8 @@
           <button type="button" class="slot-modal__close btn btn--ghost btn--sm" data-action="slot-calendar#closeModal" aria-label="Close">×</button>
         </div>
 
+        <div class="slot-modal__existing" data-slot-calendar-target="existingSlots" hidden></div>
+
         <%= form_with url: poll_time_slots_url(@poll.token), scope: :time_slot, method: :post, html: { class: "form slot-modal__form", id: "slot-form-custom" } do |f| %>
           <%= f.hidden_field :date, value: "", id: "slot_form_custom_date", data: { slot_calendar_target: "dateField" } %>
           <%= f.hidden_field :starts_at_minute, value: "", id: "slot_form_custom_start" %>
