@@ -34,6 +34,29 @@ class ResponsesControllerTest < ActionDispatch::IntegrationTest
     assert @participant.responses.find_by(time_slot: slot).yes?
   end
 
+  test "GET index shows response matrix" do
+    get poll_responses_url(@poll.token)
+    assert_response :success
+    assert_select "table.responses-matrix"
+    assert_select "th", text: "Charlie"
+    assert_select "span.response-cell--yes", text: "Yes"
+  end
+
+  test "GET index when no participants shows empty state" do
+    poll = Poll.create!(creator_name: "Zed", creator_cookie_id: "cookie_zed_test")
+    TimeSlot.create!(poll: poll, date: "2026-06-01", starts_at_minute: 600, ends_at_minute: 660)
+    get poll_responses_url(poll.token)
+    assert_response :success
+    assert_match(/no one has joined/i, response.body)
+  end
+
+  test "GET index when poll has no time slots shows empty state" do
+    poll = polls(:two)
+    get poll_responses_url(poll.token)
+    assert_response :success
+    assert_match(/no time options yet/i, response.body)
+  end
+
   test "bulk POST without first joining as participant redirects to poll" do
     get new_poll_url  # new cookie, no participant
     post poll_bulk_responses_url(@poll.token), params: {

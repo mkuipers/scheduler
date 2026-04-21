@@ -4,6 +4,9 @@
   <p class="eyebrow">Meeting poll</p>
   <h1 class="page-title"><%= @poll.title.presence || "Untitled meeting" %></h1>
   <p class="meta-line">Organized by <strong><%= @poll.creator_name %></strong></p>
+  <p class="page-header__nav">
+    <%= link_to "View all responses", poll_responses_path(@poll.token), class: "subtle-link" %>
+  </p>
 </header>
 
 <% if flash[:notice].present? || flash[:alert].present? %>

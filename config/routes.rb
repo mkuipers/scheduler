@@ -15,6 +15,7 @@ Rails.application.routes.draw do
     end
 
     post "responses/bulk", to: "responses#bulk", as: :bulk_responses
+    get  "responses", to: "responses#index", as: :responses
   end
 
   get "up" => "rails/health#show", as: :rails_health_check

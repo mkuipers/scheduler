@@ -1,6 +1,22 @@
 class ResponsesController < ApplicationController
+  include PollShowContext
+
   before_action :load_poll
-  before_action :load_participant
+  before_action :load_participant, only: [:bulk]
+
+  def index
+    assign_poll_show_ivars
+    @time_slots = @poll.time_slots.ordered_by_date.to_a
+    @participants = @poll.participants.order(:name).to_a
+    @responses_by_pair =
+      if @participants.any? && @time_slots.any?
+        Response
+          .where(participant: @participants, time_slot: @time_slots)
+          .index_by { |r| [r.participant_id, r.time_slot_id] }
+      else
+        {}
+      end
+  end
 
   def bulk
     unless @participant

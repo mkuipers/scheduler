@@ -1,16 +1,66 @@
-<p style="color: green"><%= notice %></p>
+<% content_for :title, "Responses — #{@poll.title.presence || "Meeting poll"}" %>
 
-<% content_for :title, "Responses" %>
+<header class="page-header">
+  <p class="eyebrow">Meeting poll</p>
+  <h1 class="page-title">Everyone's responses</h1>
+  <p class="meta-line">
+    <%= @poll.title.presence || "Untitled meeting" %>
+    <span class="meta-line__sep">·</span>
+    Organized by <strong><%= @poll.creator_name %></strong>
+  </p>
+  <p class="page-header__nav">
+    <%= link_to "← Back to poll", poll_path(@poll.token), class: "subtle-link" %>
+  </p>
+</header>
 
-<h1>Responses</h1>
-
-<div id="responses">
-  <% @responses.each do |response| %>
-    <%= render response %>
-    <p>
-      <%= link_to "Show this response", response %>
+<% if @time_slots.empty? %>
+  <div class="card card--pad">
+    <p class="lede">There are no time options yet. The organizer can add them from the poll page.</p>
+    <p class="form__actions">
+      <%= link_to "Go to poll", poll_path(@poll.token), class: "btn btn--primary" %>
     </p>
-  <% end %>
-</div>
+  </div>
+<% elsif @participants.empty? %>
+  <div class="card card--pad">
+    <p class="lede">No one has joined this poll yet. Share the poll link so people can add their availability.</p>
+    <p class="form__actions">
+      <%= link_to "Back to poll", poll_path(@poll.token), class: "btn btn--primary" %>
+    </p>
+  </div>
+<% else %>
+  <div class="responses-table-wrap">
+    <table class="responses-matrix">
+      <thead>
+        <tr>
+          <th class="responses-matrix__corner" scope="col">Participant</th>
+          <% @time_slots.each do |slot| %>
+            <th class="responses-matrix__slot-head" scope="col">
+              <span class="responses-matrix__slot-date"><%= slot.date.strftime("%b %-d") %></span>
+              <span class="responses-matrix__slot-time"><%= slot.display_label %></span>
+            </th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% @participants.each do |participant| %>
+          <tr>
+            <th class="responses-matrix__name" scope="row"><%= participant.name %></th>
+            <% @time_slots.each do |slot| %>
+              <% r = @responses_by_pair[[participant.id, slot.id]] %>
+              <td class="responses-matrix__cell">
+                <span class="<%= response_matrix_cell_class(r) %>"><%= response_matrix_cell_label(r) %></span>
+              </td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
 
-<%= link_to "New response", new_response_path %>
+  <p class="responses-legend">
+    <span><span class="response-chip response-chip--yes">Yes</span></span>
+    <span><span class="response-chip response-chip--maybe">Maybe</span></span>
+    <span><span class="response-chip response-chip--no">No</span></span>
+    <span><span class="response-chip response-chip--empty">—</span> not answered</span>
+  </p>
+<% end %>
