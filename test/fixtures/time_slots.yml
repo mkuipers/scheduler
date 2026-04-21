@@ -9,3 +9,9 @@ two:
   date: 2026-05-11
   starts_at_minute: 540
   ends_at_minute: 660
+
+three:
+  poll: one
+  date: 2026-05-10
+  starts_at_minute: 600
+  ends_at_minute: 660

@@ -45,9 +45,11 @@ class PollTest < ActiveSupport::TestCase
 
   test "destroying a poll cascades to time_slots and participants" do
     poll = polls(:one)
-    assert_difference ["TimeSlot.count", "Participant.count"], -2 do
-      assert_difference "Response.count", -2 do
-        poll.destroy!
+    assert_difference "TimeSlot.count", -3 do
+      assert_difference "Participant.count", -2 do
+        assert_difference "Response.count", -2 do
+          poll.destroy!
+        end
       end
     end
   end

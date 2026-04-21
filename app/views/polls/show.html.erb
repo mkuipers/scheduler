@@ -144,31 +144,44 @@
       <%= form_with url: poll_bulk_responses_url(@poll.token), method: :post, html: { class: "form" } do |f| %>
         <div class="availability-stack">
           <% responses_by_slot = @participant.responses.index_by(&:time_slot_id) %>
-          <% @poll.time_slots.ordered_by_date.each do |slot| %>
-            <% current_status = responses_by_slot[slot.id]&.status %>
-            <fieldset class="availability-card">
-              <legend><%= slot.date.strftime("%B %-d, %Y") %> · <%= slot.display_label %></legend>
-              <div class="choice-grid">
-                <label>
-                  <input type="radio" name="responses[<%= slot.id %>]"
-                         id="yes_<%= slot.id %>" value="yes"
-                         <%= "checked" if current_status == "yes" %>>
-                  Yes
-                </label>
-                <label>
-                  <input type="radio" name="responses[<%= slot.id %>]"
-                         id="maybe_<%= slot.id %>" value="maybe"
-                         <%= "checked" if current_status == "maybe" %>>
-                  Maybe
-                </label>
-                <label>
-                  <input type="radio" name="responses[<%= slot.id %>]"
-                         id="no_<%= slot.id %>" value="no"
-                         <%= "checked" if current_status == "no" %>>
-                  No
-                </label>
+          <% @poll.time_slots.ordered_by_date.to_a.group_by(&:date).each do |date, slots| %>
+            <section class="availability-day-group" data-controller="availability-day">
+              <div class="availability-day-group__header">
+                <h3 class="availability-day-group__title"><%= date.strftime("%A, %B %-d, %Y") %></h3>
+                <button type="button" class="btn btn--secondary btn--sm"
+                        data-action="availability-day#declineAll">
+                  Decline all this day
+                </button>
               </div>
-            </fieldset>
+              <div class="availability-day-group__panel">
+                <% slots.each do |slot| %>
+                  <% current_status = responses_by_slot[slot.id]&.status %>
+                  <fieldset class="availability-card" data-availability-day-target="slot">
+                    <legend><%= slot.display_label %></legend>
+                    <div class="choice-grid">
+                      <label>
+                        <input type="radio" name="responses[<%= slot.id %>]"
+                               id="yes_<%= slot.id %>" value="yes"
+                               <%= "checked" if current_status == "yes" %>>
+                        Yes
+                      </label>
+                      <label>
+                        <input type="radio" name="responses[<%= slot.id %>]"
+                               id="maybe_<%= slot.id %>" value="maybe"
+                               <%= "checked" if current_status == "maybe" %>>
+                        Maybe
+                      </label>
+                      <label>
+                        <input type="radio" name="responses[<%= slot.id %>]"
+                               id="no_<%= slot.id %>" value="no"
+                               <%= "checked" if current_status == "no" %>>
+                        No
+                      </label>
+                    </div>
+                  </fieldset>
+                <% end %>
+              </div>
+            </section>
           <% end %>
         </div>
         <div class="form__actions">

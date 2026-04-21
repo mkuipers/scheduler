@@ -3,10 +3,10 @@ require "test_helper"
 class PollPresetsTest < ActiveSupport::TestCase
   test "returns distinct time windows in creation order" do
     poll = polls(:one)
-    # fixtures already have two distinct windows on this poll
-    # time_slots one: 840-960, two: 540-660
+    # fixtures: one 840-960, two 540-660, three 600-660 (same poll, distinct windows; order follows query)
     presets = PollPresets.new(poll).call
-    assert_equal 2, presets.length
+    assert_equal 3, presets.length
+    assert_equal [[540, 660], [600, 660], [840, 960]], presets
     assert presets.all? { |s, e| e > s }
   end
 
