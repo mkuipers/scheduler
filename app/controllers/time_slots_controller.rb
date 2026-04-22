@@ -26,7 +26,7 @@ class TimeSlotsController < ApplicationController
     )
 
     if @time_slot.save
-      redirect_to poll_url(@poll.token)
+      redirect_to poll_url(@poll.token, calendar_month: @time_slot.date.strftime("%Y-%m"))
     else
       flash.now[:alert] = @time_slot.errors.full_messages.to_sentence
       assign_poll_show_ivars
@@ -36,8 +36,9 @@ class TimeSlotsController < ApplicationController
 
   def destroy
     slot = @poll.time_slots.find(params[:id])
+    month = slot.date.strftime("%Y-%m")
     slot.destroy!
-    redirect_to poll_url(@poll.token)
+    redirect_to poll_url(@poll.token, calendar_month: month)
   end
 
   private

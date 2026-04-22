@@ -31,6 +31,15 @@ class PollsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "GET /scheduler/:token with calendar_month passes month to slot calendar" do
+    get new_poll_url
+    post polls_url, params: { poll: { creator_name: "Calendar tester" } }
+    poll = Poll.last
+    get poll_url(poll.token, calendar_month: "2026-08")
+    assert_response :success
+    assert_match(/data-slot-calendar-month-value="2026-08"/, response.body)
+  end
+
   test "GET /scheduler/:token with unknown token returns 404" do
     get poll_url("notexist")
     assert_response :not_found

@@ -6,7 +6,8 @@ export default class extends Controller {
   static values = {
     slots: Object,
     slotMinutes: Object,
-    anchor: { type: String, default: "" }
+    anchor: { type: String, default: "" },
+    month: { type: String, default: "" }
   }
 
   connect() {
@@ -15,7 +16,13 @@ export default class extends Controller {
         this.parseIso(this.anchorValue) :
         this.startOfDay(new Date())
     this.today = this.startOfDay(base)
-    this.viewDate = new Date(this.today.getFullYear(), this.today.getMonth(), 1)
+
+    const fromQuery = this.parseYearMonth(this.monthValue)
+    if (fromQuery) {
+      this.viewDate = new Date(fromQuery.y, fromQuery.m - 1, 1)
+    } else {
+      this.viewDate = new Date(this.today.getFullYear(), this.today.getMonth(), 1)
+    }
     this.renderCalendar()
   }
 
@@ -50,6 +57,17 @@ export default class extends Controller {
   parseIso(iso) {
     const [y, m, d] = iso.split("-").map(Number)
     return new Date(y, m - 1, d)
+  }
+
+  /** @returns {{ y: number, m: number } | null} */
+  parseYearMonth(str) {
+    if (!str || str.length < 7) return null
+    const m = str.trim().match(/^(\d{4})-(\d{1,2})$/)
+    if (!m) return null
+    const y = Number(m[1])
+    const mo = Number(m[2])
+    if (mo < 1 || mo > 12 || y < 2000 || y > 2100) return null
+    return { y, m: mo }
   }
 
   prevMonth() {

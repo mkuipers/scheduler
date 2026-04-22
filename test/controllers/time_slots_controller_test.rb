@@ -15,7 +15,7 @@ class TimeSlotsControllerTest < ActionDispatch::IntegrationTest
     slot = TimeSlot.last
     assert_equal 14 * 60, slot.starts_at_minute
     assert_equal 16 * 60, slot.ends_at_minute
-    assert_redirected_to poll_url(@poll.token)
+    assert_redirected_to poll_url(@poll.token, calendar_month: "2026-06")
   end
 
   test "POST creates slot via preset (direct minutes)" do
@@ -23,7 +23,7 @@ class TimeSlotsControllerTest < ActionDispatch::IntegrationTest
       post poll_time_slots_url(@poll.token),
            params: { time_slot: { date: "2026-06-02", starts_at_minute: 540, ends_at_minute: 660 } }
     end
-    assert_redirected_to poll_url(@poll.token)
+    assert_redirected_to poll_url(@poll.token, calendar_month: "2026-06")
   end
 
   test "POST with unparseable time_window returns 422" do
@@ -60,7 +60,7 @@ class TimeSlotsControllerTest < ActionDispatch::IntegrationTest
     assert_difference "TimeSlot.count", -1 do
       delete poll_time_slot_url(@poll.token, slot)
     end
-    assert_redirected_to poll_url(@poll.token)
+    assert_redirected_to poll_url(@poll.token, calendar_month: "2026-06")
   end
 
   test "DELETE as non-creator returns 404" do

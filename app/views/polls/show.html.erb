@@ -40,12 +40,14 @@
     </div>
   </div>
 
-  <%= tag.section class: "section card card--pad calendar-card", data: {
-        controller: "slot-calendar",
-        slot_calendar_slots_value: slots_by_date,
-        slot_calendar_slot_minutes_value: slot_minutes_by_date,
-        slot_calendar_anchor_value: Time.zone.today.iso8601
-      } do %>
+  <% calendar_data = {
+       controller: "slot-calendar",
+       slot_calendar_slots_value: slots_by_date,
+       slot_calendar_slot_minutes_value: slot_minutes_by_date,
+       slot_calendar_anchor_value: Time.zone.today.iso8601
+     } %>
+  <% calendar_data[:slot_calendar_month_value] = @calendar_month if @calendar_month.present? %>
+  <%= tag.section class: "section card card--pad calendar-card", data: calendar_data do %>
     <h2 class="section-title">Add time slots</h2>
     <p class="calendar-hint">Choose a day on the calendar. You can type a time range or tap a preset to add it immediately for that date.</p>
 
