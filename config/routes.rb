@@ -3,6 +3,7 @@ Rails.application.routes.draw do
 
   get  "/scheduler",     to: "polls#new",    as: :new_poll
   post "/scheduler",     to: "polls#create", as: :polls
+  get  "/scheduler/usage", to: "usage_stats#index", as: :usage_stats
 
   scope "/scheduler/:poll_token", as: :poll do
     get   "/",           to: "polls#show",   as: ""

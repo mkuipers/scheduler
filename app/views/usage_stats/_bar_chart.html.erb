@@ -1,0 +1,15 @@
+<% max = series.map { |h| h[:count] }.max %>
+<% max = 1 if max.to_i.zero? %>
+<div class="bar-chart" role="img" aria-label="Bar chart of daily counts">
+  <div class="bar-chart__plot">
+    <% series.each do |row| %>
+      <% h_pct = (row[:count].to_f / max * 100).round(1) %>
+      <div class="bar-chart__col">
+        <div class="bar-chart__bar-wrap" title="<%= row[:count] %> on <%= row[:date].strftime('%b %-d') %>">
+          <div class="bar-chart__bar <%= local_assigns[:bar_class] %>" style="height: <%= h_pct %>%"></div>
+        </div>
+        <span class="bar-chart__label"><%= row[:date].strftime("%-m/%-d") %></span>
+      </div>
+    <% end %>
+  </div>
+</div>

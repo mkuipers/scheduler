@@ -29,6 +29,13 @@
       <header class="app-header">
         <div class="app-header__inner">
           <%= link_to "Scheduler", new_poll_path, class: "logo" %>
+          <nav class="app-header__nav" aria-label="Site">
+            <%= link_to "Usage stats", usage_stats_path, class: "app-header__link" %>
+            <%= link_to "Source code", Rails.configuration.x.source_code_url,
+                  class: "app-header__link",
+                  target: "_blank",
+                  rel: "noopener noreferrer" %>
+          </nav>
         </div>
       </header>
       <main class="app-main">

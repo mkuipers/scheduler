@@ -1,0 +1,43 @@
+<% content_for :title, "Usage stats · Scheduler" %>
+
+<header class="page-header">
+  <p class="eyebrow">Scheduler</p>
+  <h1 class="page-title">Usage stats</h1>
+  <p class="meta-line">Anonymous, aggregate numbers for this instance. No poll contents are shown.</p>
+</header>
+
+<section class="stats-summary card card--pad">
+  <h2 class="section-title stats-summary__title">Overview</h2>
+  <div class="stats-summary__grid">
+    <div class="stat-tile">
+      <p class="stat-tile__label">Total polls</p>
+      <p class="stat-tile__value"><%= number_with_delimiter(@stats.total_polls) %></p>
+    </div>
+    <div class="stat-tile">
+      <p class="stat-tile__label">Polls per day (avg, lifetime)</p>
+      <p class="stat-tile__value"><%= @stats.avg_polls_per_day %></p>
+    </div>
+    <div class="stat-tile">
+      <p class="stat-tile__label">Total responses</p>
+      <p class="stat-tile__value"><%= number_with_delimiter(@stats.total_responses) %></p>
+    </div>
+    <div class="stat-tile">
+      <p class="stat-tile__label">New respondents per day (avg, lifetime)</p>
+      <p class="stat-tile__value"><%= @stats.avg_participants_per_day %></p>
+      <p class="stat-tile__hint">A respondent is someone who joins a poll (by name).</p>
+    </div>
+  </div>
+</section>
+
+<section class="stats-charts">
+  <div class="stats-chart card card--pad">
+    <h2 class="section-title">Polls created</h2>
+    <p class="stats-chart__subtitle">Last <%= UsageStats::CHART_DAYS %> days</p>
+    <%= render "usage_stats/bar_chart", series: @stats.polls_by_day, bar_class: "bar-chart__bar--polls" %>
+  </div>
+  <div class="stats-chart card card--pad">
+    <h2 class="section-title">Responses saved</h2>
+    <p class="stats-chart__subtitle">Last <%= UsageStats::CHART_DAYS %> days (grouped by last save time)</p>
+    <%= render "usage_stats/bar_chart", series: @stats.responses_by_day, bar_class: "bar-chart__bar--responses" %>
+  </div>
+</section>
