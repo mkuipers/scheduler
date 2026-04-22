@@ -24,9 +24,20 @@
   <% slots_by_date = @poll.time_slots.ordered_by_date.group_by { |s| s.date.iso8601 }.transform_values { |arr| arr.map(&:display_label) } %>
   <% slot_minutes_by_date = @poll.time_slots.ordered_by_date.group_by { |s| s.date.iso8601 }.transform_values { |arr| arr.map { |s| [s.starts_at_minute, s.ends_at_minute] } } %>
 
-  <div class="share-card">
+  <div class="share-card"
+       data-controller="clipboard"
+       data-clipboard-text-value="<%= h(poll_url(@poll.token)) %>">
     <p class="share-card__label">Share link</p>
-    <p class="share-url"><%= poll_url(@poll.token) %></p>
+    <div class="share-card__row">
+      <p class="share-url"><%= poll_url(@poll.token) %></p>
+      <button type="button"
+              class="btn btn--secondary btn--sm share-card__copy"
+              data-clipboard-target="button"
+              data-action="clipboard#copy"
+              aria-label="Copy share link to clipboard">
+        Copy
+      </button>
+    </div>
   </div>
 
   <%= tag.section class: "section card card--pad calendar-card", data: {
