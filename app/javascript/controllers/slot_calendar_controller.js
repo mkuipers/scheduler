@@ -205,13 +205,13 @@ export default class extends Controller {
     })
 
     const first = new Date(y, m, 1)
-    const startPad = (first.getDay() + 6) % 7
+    const startPad = first.getDay()
     const daysInMonth = new Date(y, m + 1, 0).getDate()
     const prevMonthDays = new Date(y, m, 0).getDate()
     const slots = this.slotsMap()
     const todayIso = this.isoFromYmd(this.today.getFullYear(), this.today.getMonth(), this.today.getDate())
 
-    const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     let html = ""
     for (const w of weekdays) {
       html += `<div class="calendar__weekday">${w}</div>`
